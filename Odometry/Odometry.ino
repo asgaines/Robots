@@ -18,8 +18,8 @@ const float pi = 3.1415926;
 const float speedMotor = 0.3 / (10773.0 / 1000.0); // m / s
 const float lengthAxle = 0.084; // meters
 
-float posX = 0;
-float posY = 0;
+float posX = 0.0;
+float posY = 0.0;
 float theta = pi; // Initially facing left (180 degrees)
 
 boolean turningRight;
@@ -31,9 +31,7 @@ int lineLeft;
 int lineCenter;
 int lineRight;
 
-void setup() 
-{
-}
+void setup() {}
 
 void loop() {
   startOfLoop = millis();
@@ -45,22 +43,32 @@ void loop() {
   if ( lineCenter < threshold ) // if line is below left line sensor
   {  
     sparki.moveForward(); // move forward
-    turningRight = false;
-    turningLeft = false;
+//    turningRight = false;
+//    turningLeft = false;
+    posX += cos(theta) * (speedMotor * 0.1);
+    posY += sin(theta) * (speedMotor * 0.1);
+    
+    if (lineLeft < threshold && lineRight < threshold) {
+      // Sparki is at origin. Tell him, cause he forgets
+      posX = 0.0;
+      posY = 0.0;
+    }
   }
   else{
     if ( lineLeft < threshold ) // if line is below left line sensor
     {  
       sparki.moveLeft(); // turn left
-      turningLeft = true;
-      turningRight = false;
+      theta += 2.0 * (speedMotor * 0.1) / lengthAxle;
+//      turningLeft = true;
+//      turningRight = false;
     }
   
     if ( lineRight < threshold ) // if line is below right line sensor
     {  
       sparki.moveRight(); // turn right
-      turningRight = true;
-      turningLeft = false;
+      theta -= 2.0 * (speedMotor * 0.1) / lengthAxle;
+//      turningRight = true;
+//      turningLeft = false;
     }
   }
 
@@ -73,7 +81,7 @@ void loop() {
   sparki.println(posY);
   
   sparki.print("Theta: "); // show right line sensor on screen
-  sparki.println(theta/3.1415*180);
+  sparki.println((theta / 3.1415) * 180.0);
   
   sparki.updateLCD(); // display all of the information written to the screen
 
@@ -84,13 +92,13 @@ void loop() {
   // Calculate the kinematics of Sparki
   
   // Calculate change in theta
-  if (turningRight && !turningLeft) {
+//  if (turningRight && !turningLeft) {
     // Sparki is turning right
-    theta -= 2.0 * (speedMotor * 0.1) / lengthAxle;
-  } else if (turningLeft && !turningRight) {
+//    theta -= 2.0 * (speedMotor * 0.1) / lengthAxle;
+//  } else if (turningLeft && !turningRight) {
     // Sparki is turning left
-    theta += 2.0 * (speedMotor * 0.1) / lengthAxle;
-  } // No change if moving straight forward
+//    theta += 2.0 * (speedMotor * 0.1) / lengthAxle;
+//  } // No change if moving straight forward
 
   // Keep theta between 0 and 2*pi
 //  if (theta < 0) {
@@ -100,13 +108,14 @@ void loop() {
 //  }
 
   // Calculate change in position
-  if (!turningLeft && !turningRight) {
-    posX += cos(theta) * (speedMotor * 0.1);
-    posY += sin(theta) * (speedMotor * 0.1);
-  }
-   
-  while (millis() - startOfLoop <= 100){
-    // Wait and do nothing, this is used to ensure Sparki was moving for 100 msec
-  }
+//  if (!turningLeft && !turningRight) {
+//    posX += cos(theta) * (speedMotor * 0.1);
+//    posY += sin(theta) * (speedMotor * 0.1);
+//  }
+
+  delay(75);
+//  while (millis() <= startOfLoop + 100){
+//    // Wait and do nothing, this is used to ensure Sparki was moving for 100 msec
+//  }
 
 }
