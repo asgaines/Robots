@@ -34,11 +34,19 @@ const int numCols = 4;
 int displayRows = 64;
 int displayCols = 128;
 
+// Dimensions of line-following map
+float mapWidth = 0.595; // meters
+float mapHeight = 0.415; // meters
+
+// Distance between Sparki's x, y start point and the corner of the map
+float yStartDifference = 0.055;
+float xStartDifference = 0.143;
+
 byte envMap[numRows][numCols] = {
-  {0, 0, 0, 1},
-  {1, 1, 0, 1},
-  {0, 0, 0, 0},
-  {1, 0, 1, 0},
+  {1, 1, 1, 0},
+  {0, 0, 1, 0},
+  {1, 1, 1, 1},
+  {0, 1, 0, 1},
 };
 
 byte startPosition[2] = {0, 0};
@@ -46,44 +54,43 @@ byte currentPosition[2] = {startPosition[0], startPosition[1]};
 byte goalPosition[2] = {3, 1};
 
 void setup() {
-  displayMap(); 
+  sparki.clearLCD(); // wipe the screen
+  //displayMap(); 
 }
 
 void loop() {
-//  startOfLoop = millis();
-//  
-//  lineLeft   = sparki.lineLeft();   // measure the left IR sensor
-//  lineCenter = sparki.lineCenter(); // measure the center IR sensor
-//  lineRight  = sparki.lineRight();  // measure the right IR sensor
-//
-//  if ( lineCenter < threshold ) // if line is below left line sensor
-//  {  
-//    sparki.moveForward(); // move forward
-//    posX += cos(theta) * (speedMotor * 0.1);
-//    posY += sin(theta) * (speedMotor * 0.1);
-//    
-//    if (lineLeft < threshold && lineRight < threshold) {
-//      // Sparki is at origin. Tell him, cause he forgets
-//      posX = 0.0;
-//      posY = 0.0;
-//    }
-//  }
-//  else{
-//    if ( lineLeft < threshold ) // if line is below left line sensor
-//    {  
-//      sparki.moveLeft(); // turn left
-//      theta += 2.0 * (speedMotor * 0.1) / lengthAxle;
-//    }
-//  
-//    if ( lineRight < threshold ) // if line is below right line sensor
-//    {  
-//      sparki.moveRight(); // turn right
-//      theta -= 2.0 * (speedMotor * 0.1) / lengthAxle;
-//    }
-//  }
-//
-//  sparki.clearLCD(); // wipe the screen
-//  
+  startOfLoop = millis();
+  
+  lineLeft   = sparki.lineLeft();   // measure the left IR sensor
+  lineCenter = sparki.lineCenter(); // measure the center IR sensor
+  lineRight  = sparki.lineRight();  // measure the right IR sensor
+
+  if ( lineCenter < threshold ) // if line is below left line sensor
+  {  
+    sparki.moveForward(); // move forward
+    posX += cos(theta) * (speedMotor * 0.1);
+    posY += sin(theta) * (speedMotor * 0.1);
+    
+    if (lineLeft < threshold && lineRight < threshold) {
+      // Sparki is at origin. Tell him, cause he forgets
+      posX = 0.0;
+      posY = 0.0;
+    }
+  }
+  else{
+    if ( lineLeft < threshold ) // if line is below left line sensor
+    {  
+      sparki.moveLeft(); // turn left
+      theta += 2.0 * (speedMotor * 0.1) / lengthAxle;
+    }
+  
+    if ( lineRight < threshold ) // if line is below right line sensor
+    {  
+      sparki.moveRight(); // turn right
+      theta -= 2.0 * (speedMotor * 0.1) / lengthAxle;
+    }
+  }
+  
 //  sparki.print("X-position: "); // show left line sensor on screen
 //  sparki.println(posX);
 //  
@@ -92,12 +99,17 @@ void loop() {
 //  
 //  sparki.print("Theta: "); // show right line sensor on screen
 //  sparki.println((theta / 3.1415) * 180.0);
-//  
-//  sparki.updateLCD(); // display all of the information written to the screen
-//
-//  while (millis() < startOfLoop + 100){
-//    // Wait and do nothing, this is used to ensure Sparki was moving for 100 msec
-//  }
+
+
+
+  // Print out the pixel on the graph for where Sparki currently is
+  sparki.drawPixel(127.0 - (mapWidth - xStartDifference + posX) / mapWidth * 128.0, 63.0 - (mapHeight - yStartDifference + posY) / mapHeight * 64.0);
+  
+  sparki.updateLCD(); // display all of the information written to the screen
+
+  while (millis() < startOfLoop + 100){
+    // Wait and do nothing, this is used to ensure Sparki was moving for 100 msec
+  }
 }
 
 void displayMap() {
@@ -106,14 +118,8 @@ void displayMap() {
   int widthCol = displayCols / numCols;
   for (int row = 0; row < numRows; row++) {
     for (int col = 0; col < numCols; col++) {
-      if (envMap[row][col]){
-//        sparki.print("(");
-//        sparki.print(row);
-//        sparki.print(",");
-//        sparki.print(col);
-//        sparki.print(") ");
-        
-        sparki.drawRectFilled(widthCol * col, widthRow * row, widthCol * (col + 1), widthRow * (row + 1));
+      if (!envMap[row][col]){
+        sparki.drawRectFilled(widthCol * col, widthRow * row, widthCol, widthRow);
       }
     }
   }
