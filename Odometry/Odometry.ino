@@ -72,7 +72,7 @@ void loop() {
   sparki.println(posY);
   
   sparki.print("Theta: "); // show right line sensor on screen
-  sparki.println((theta / 3.1415) * 180.0);
+  sparki.println((theta / pi) * 180.0);
   
   sparki.updateLCD(); // display all of the information written to the screen
 
