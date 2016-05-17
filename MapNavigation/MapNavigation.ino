@@ -101,7 +101,7 @@ void loop() {
 //  sparki.println((theta / 3.1415) * 180.0);
 
 
-
+  sparki.clearLCD();
   // Print out the pixel on the graph for where Sparki currently is
   sparki.drawPixel(((xStartDifference - posX) * 127.0 / mapWidth), ((yStartDifference + posY) * 63.0 / mapHeight));
   
