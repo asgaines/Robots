@@ -11,6 +11,7 @@
  adjust.
 ********************************************/
 
+#define infinity 999
 #include <Sparki.h> // include the sparki library
 unsigned long startOfLoop; // Time since start of program, calculated at each loop beginning
 const float pi = 3.1415926;
@@ -124,4 +125,24 @@ void displayMap() {
     }
   }
   sparki.updateLCD();
+}
+ 
+void dij(int n,int v,int cost[10][10],int dist[])
+{
+ int i,u,count,w,flag[10],min;
+ for(i=1;i<=n;i++)
+  flag[i]=0,dist[i]=cost[v][i];
+ count=2;
+ while(count<=n)
+ {
+  min=99;
+  for(w=1;w<=n;w++)
+   if(dist[w]<min && !flag[w])
+    min=dist[w],u=w;
+  flag[u]=1;
+  count++;
+  for(w=1;w<=n;w++)
+   if((dist[u]+cost[u][w]<dist[w]) && !flag[w])
+    dist[w]=dist[u]+cost[u][w];
+ }
 }
