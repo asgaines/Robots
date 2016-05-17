@@ -103,7 +103,7 @@ void loop() {
 
 
   // Print out the pixel on the graph for where Sparki currently is
-  sparki.drawPixel(127.0 - (mapWidth - xStartDifference + posX) / mapWidth * 128.0, 63.0 - (mapHeight - yStartDifference + posY) / mapHeight * 64.0);
+  sparki.drawPixel(((xStartDifference - posX) * 127.0 / mapWidth), ((yStartDifference + posY) * 63.0 / mapHeight));
   
   sparki.updateLCD(); // display all of the information written to the screen
 
@@ -125,4 +125,3 @@ void displayMap() {
   }
   sparki.updateLCD();
 }
-
