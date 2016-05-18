@@ -73,17 +73,25 @@ byte goalPosition[2] = {3, 1};
 void setup() {
   sparki.clearLCD(); // wipe the screen
   //displayMap(); 
-  dij(10, 7, cost, distance, previousNode);
-  for(int i = 0; i < 10; i++)
+}
+
+void loop() {
+  
+
+    costMatrix(envMap);
+    /*dij(10, 0, cost, distance, previousNode);
+    for(int i = 0; i < 10; i++)
   {
     sparki.clearLCD();
+    sparki.print("Distance ");
+    sparki.print(i);
+    sparki.print(" = ");
     sparki.println(distance[i]);
     sparki.updateLCD();
     delay(1000);
   }
-}
-
-void loop() {
+*/
+  
   startOfLoop = millis();
   
   lineLeft   = sparki.lineLeft();   // measure the left IR sensor
@@ -151,8 +159,8 @@ void displayMap() {
   sparki.updateLCD();
 }
 
-/*
-void costMastrix( int mapE[4][4] ){
+
+void costMatrix( byte mapE[4][4] ){
   int costMatrix[16][16];
   for(int i = 0; i < 16; i++)
   {
@@ -167,16 +175,33 @@ void costMastrix( int mapE[4][4] ){
     {
       if(mapE[i][j] == 1)
       {
-        if(mapE[i+1][j] == 1)
+        if(mapE[i][j+1] == 1 && j != 3)
         {
-          cost[i + 4 * j][j + 4 * i] = 1; 
-        }        
+          costMatrix[j + 4 * i][j + 4 * i + 1] = 1; 
+        }
+        if(mapE[i+1][j] == 1 && i != 3)
+        {
+          costMatrix[j + 4 * i][j + 4 * i + 4] = 1;           
+        }
       }
-      
+    }
+  }
+  for(int i = 0; i < 16; i++)
+  {
+    for(int j = 0; j < 16; j++)
+    {
+      sparki.clearLCD();
+      sparki.print(i);
+      sparki.print(",");
+      sparki.print(j);
+      sparki.print(" = "); 
+      sparki.println(costMatrix[i][j]); 
+      sparki.updateLCD();
+      delay(1000); 
     }
   }
 }
-*/
+
  
 void dij(int n, int startNode,int cost[10][10],int dist[], int prevNode[])
 {
