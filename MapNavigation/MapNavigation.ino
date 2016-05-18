@@ -50,6 +50,19 @@ byte envMap[numRows][numCols] = {
   {0, 1, 0, 1},
 };
 
+int cost[10][10] = {
+  {0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+  {1, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+  {0, 1, 0, 1, 0, 0, 0, 0, 0, 0},
+  {0, 0, 1, 0, 1, 0, 0, 0, 0, 0},
+  {0, 0, 0, 1, 0, 1, 0, 0, 1, 0},
+  {0, 0, 0, 0, 1, 0, 1, 1, 0, 0},
+  {0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+  {0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
+  {0, 0, 0, 0, 0, 0, 0, 0, 1, 0}
+};
+
 byte startPosition[2] = {0, 0};
 byte currentPosition[2] = {startPosition[0], startPosition[1]};
 byte goalPosition[2] = {3, 1};
@@ -100,11 +113,11 @@ void loop() {
 //  
 //  sparki.print("Theta: "); // show right line sensor on screen
 //  sparki.println((theta / 3.1415) * 180.0);
+  
 
-
-  sparki.clearLCD();
-  // Print out the pixel on the graph for where Sparki currently is
-  sparki.drawPixel(((xStartDifference - posX) * 127.0 / mapWidth), ((yStartDifference + posY) * 63.0 / mapHeight));
+//  sparki.clearLCD();
+//  // Print out the pixel on the graph for where Sparki currently is
+//  sparki.drawPixel(((xStartDifference - posX) * 127.0 / mapWidth), ((yStartDifference + posY) * 63.0 / mapHeight));
   
   sparki.updateLCD(); // display all of the information written to the screen
 
@@ -127,22 +140,32 @@ void displayMap() {
   sparki.updateLCD();
 }
  
-void dij(int n,int v,int cost[10][10],int dist[])
+void dij(int n, int startNode,int cost[10][10],int dist[], int prevNode[])
 {
- int i,u,count,w,flag[10],min;
- for(i=1;i<=n;i++)
-  flag[i]=0,dist[i]=cost[v][i];
- count=2;
- while(count<=n)
- {
-  min=99;
-  for(w=1;w<=n;w++)
-   if(dist[w]<min && !flag[w])
-    min=dist[w],u=w;
-  flag[u]=1;
-  count++;
-  for(w=1;w<=n;w++)
-   if((dist[u]+cost[u][w]<dist[w]) && !flag[w])
-    dist[w]=dist[u]+cost[u][w];
- }
+  int i,minNode,count,w,flag[10],minVal;
+  for(i=1;i<=n;i++){
+    flag[i]=0;
+    dist[i]=cost[startNode][i];
+  }
+  count=2;
+  while(count<=n)
+  {
+    minVal=99;
+    for(w=1;w<=n;w++){
+      if(dist[w]<minVal && !flag[w]){
+        minVal=dist[w];
+        minNode=w;
+        flag[minNode]=1;
+        count++;
+      }
+    }
+    for(w=1;w<=n;w++){
+      if((dist[minNode]+cost[minNode][w]<dist[w]) && !flag[w]){
+        dist[w]=dist[minNode]+cost[minNode][w];
+        prevNode[w] = minNode;
+//        sparki.print("minNode: ");
+//        sparki.println(minNode);
+      }
+    }
+  }
 }
