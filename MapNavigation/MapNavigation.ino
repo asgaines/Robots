@@ -184,10 +184,12 @@ void costMatrix( byte mapE[4][4] ){
         if(mapE[i][j+1] == 1 && j != 3)
         {
           costMatrix[j + 4 * i][j + 4 * i + 1] = 1; 
+          costMatrix[j + 4 * i + 1][j + 4 * i] = 1; 
         }
         if(mapE[i+1][j] == 1 && i != 3)
         {
           costMatrix[j + 4 * i][j + 4 * i + 4] = 1;           
+          costMatrix[j + 4 * i + 4][j + 4 * i] = 1;           
         }
       }
     }
