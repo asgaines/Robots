@@ -63,6 +63,9 @@ int cost[10][10] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 1, 0}
 };
 
+int distance[10];
+int previousNode[10];
+
 byte startPosition[2] = {0, 0};
 byte currentPosition[2] = {startPosition[0], startPosition[1]};
 byte goalPosition[2] = {3, 1};
@@ -70,6 +73,14 @@ byte goalPosition[2] = {3, 1};
 void setup() {
   sparki.clearLCD(); // wipe the screen
   //displayMap(); 
+  dij(10, 7, cost, distance, previousNode);
+  for(int i = 0; i < 10; i++)
+  {
+    sparki.clearLCD();
+    sparki.println(distance[i]);
+    sparki.updateLCD();
+    delay(1000);
+  }
 }
 
 void loop() {
@@ -139,6 +150,33 @@ void displayMap() {
   }
   sparki.updateLCD();
 }
+
+/*
+void costMastrix( int mapE[4][4] ){
+  int costMatrix[16][16];
+  for(int i = 0; i < 16; i++)
+  {
+    for(int j = 0; j < 16; j++)
+    {
+      costMatrix[i][j] = 999;
+    }
+  }
+  for(int i = 0; i < 4; i++)
+  {
+    for(int j = 0; j < 4; j++)
+    {
+      if(mapE[i][j] == 1)
+      {
+        if(mapE[i+1][j] == 1)
+        {
+          cost[i + 4 * j][j + 4 * i] = 1; 
+        }        
+      }
+      
+    }
+  }
+}
+*/
  
 void dij(int n, int startNode,int cost[10][10],int dist[], int prevNode[])
 {
