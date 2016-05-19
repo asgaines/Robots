@@ -43,48 +43,28 @@ float mapHeight = 0.415; // meters
 float yStartDifference = 0.055;
 float xStartDifference = 0.143;
 
-byte envMap[numRows][numCols] = {
+bool envMap[numRows][numCols] = {
   {1, 1, 1, 0},
   {0, 0, 1, 0},
   {1, 1, 1, 1},
   {0, 1, 0, 1},
 };
 
-int cost[16][16] = {
-    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0},
-    {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
-};
-
-int distance[10];
-int previousNode[10];
-
 byte startPosition[2] = {0, 0};
 byte currentPosition[2] = {startPosition[0], startPosition[1]};
 byte goalPosition[2] = {3, 1};
 
 void setup() {
+  int ** costMatrix = generateCostMatrix(envMap);
+  int distance[numRows * numCols];
+  dij(numRows * numCols, 0, costMatrix, distance);
+  
   sparki.clearLCD(); // wipe the screen
   //displayMap(); 
 }
 
 void loop() {
   
-
-    costMatrix(envMap);
     /*dij(10, 0, cost, distance, previousNode);
     for(int i = 0; i < 10; i++)
   {
@@ -165,78 +145,61 @@ void displayMap() {
   sparki.updateLCD();
 }
 
+int ** generateCostMatrix( bool mapE[numRows][numCols] ){
+  int** costMatrix = 0;
+  costMatrix = new int*[numRows * numCols];
 
-void costMatrix( byte mapE[4][4] ){
-  int costMatrix[16][16];
-  for(int i = 0; i < 16; i++)
+  for(int i = 0; i < numRows * numCols; i++)
   {
-    for(int j = 0; j < 16; j++)
+    costMatrix[i] = new int[numRows * numCols];
+    for(int j = 0; j < numRows * numCols; j++)
     {
-      costMatrix[i][j] = 999;
+      costMatrix[i][j] = infinity;
     }
   }
-  for(int i = 0; i < 4; i++)
+  for(int i = 0; i < numRows; i++)
   {
-    for(int j = 0; j < 4; j++)
+    for(int j = 0; j < numCols; j++)
     {
       if(mapE[i][j] == 1)
       {
-        if(mapE[i][j+1] == 1 && j != 3)
+        if(mapE[i][j+1] == 1 && j != numCols - 1)
         {
-          costMatrix[j + 4 * i][j + 4 * i + 1] = 1; 
-          costMatrix[j + 4 * i + 1][j + 4 * i] = 1; 
+          // The position has an available neighbor spot to right
+          costMatrix[j + numRows * i][j + numRows * i + 1] = 1;
+          costMatrix[j + numRows * i + 1][j + numRows * i] = 1;
         }
-        if(mapE[i+1][j] == 1 && i != 3)
+        if(mapE[i+1][j] == 1 && i != numRows - 1)
         {
-          costMatrix[j + 4 * i][j + 4 * i + 4] = 1;           
-          costMatrix[j + 4 * i + 4][j + 4 * i] = 1;           
+          // The position has an available neighbor spot below
+          costMatrix[j + numRows * i][j + numRows * i + numRows] = 1;
+          costMatrix[j + numRows * i + numRows][j + numRows * i] = 1;
         }
       }
     }
   }
-  for(int i = 0; i < 16; i++)
-  {
-    for(int j = 0; j < 16; j++)
-    {
-      sparki.clearLCD();
-      sparki.print(i);
-      sparki.print(",");
-      sparki.print(j);
-      sparki.print(" = "); 
-      sparki.println(costMatrix[i][j]); 
-      sparki.updateLCD();
-      delay(1000); 
-    }
-  }
+  return costMatrix;
 }
 
- 
-void dij(int n, int startNode,int cost[10][10],int dist[], int prevNode[])
+void dij(int n,int v,int** cost,int dist[])
 {
-  int i,minNode,count,w,flag[10],minVal;
-  for(i=1;i<=n;i++){
-    flag[i]=0;
-    dist[i]=cost[startNode][i];
-  }
-  count=2;
-  while(count<=n)
+  int i,u,count,w,flag[4],min;
+  for(i=0;i<n;i++)
+    flag[i]=0,dist[i]=cost[v][i];
+  count=1;
+  while(count<n)
   {
-    minVal=99;
-    for(w=1;w<=n;w++){
-      if(dist[w]<minVal && !flag[w]){
-        minVal=dist[w];
-        minNode=w;
-        flag[minNode]=1;
-        count++;
-      }
-    }
-    for(w=1;w<=n;w++){
-      if((dist[minNode]+cost[minNode][w]<dist[w]) && !flag[w]){
-        dist[w]=dist[minNode]+cost[minNode][w];
-        prevNode[w] = minNode;
-//        sparki.print("minNode: ");
-//        sparki.println(minNode);
-      }
-    }
+    min=99;
+    for(w=0;w<n;w++)
+      if(dist[w]<min && !flag[w])
+      min=dist[w],u=w;
+    flag[u]=1;
+    count++;
+    for(w=0;w<n;w++)
+      if((dist[u]+cost[u][w]<dist[w]) && !flag[w])
+        dist[w]=dist[u]+cost[u][w];
   }
+
+  // Temporarily, this is only place we have access to distance
+  // Could use global variable or return from function
 }
