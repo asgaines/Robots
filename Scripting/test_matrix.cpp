@@ -88,6 +88,6 @@ void dij(int n,int v,int** cost)
 int main() {
     int ** costMatrix = generateCostMatrix(envMap);
 
-    dij(numRows * numCols, 0, costMatrix);
+    dij(numRows * numCols, 13, costMatrix);
 }
 
