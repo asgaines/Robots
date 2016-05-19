@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
 using namespace std;
 #define infinity 999
 
@@ -26,6 +27,9 @@ int distanceToNode[numRows * numCols];
 
 
 int cost(int start, int goal){
+    if (start == goal) {
+        return 0;
+    }
 	int dist = 0;
 	int x1 = start/4;
 	int x2 = goal/4;
@@ -80,7 +84,7 @@ int cost(int start, int goal){
 
 void dij(int n,int v,int distanceToNode[])
  {
-  int u, count, w, flag[4], min;
+  int u, count, w, flag[16], min;
   //int distanceToNode[n];
   
   for(int i=0;i<n;i++){
@@ -103,14 +107,15 @@ void dij(int n,int v,int distanceToNode[])
 
   for (int i = 0; i < n; i++) {
 	  //if(distanceToNode[i] != infinity)
-		printf("cost=%d\n",distanceToNode[i]);
+		printf("from %d to %d: cost=%d\n",v,i,distanceToNode[i]);
   }
   //seg fault here, result of stack overflow based on information available
 }
 
 int main() {
     //int costMatrix = cost(1, 13));
-    dij(numRows * numCols, 0, distanceToNode);
+    dij(numRows * numCols, 13, distanceToNode);
+    printf("done");
     return 0;
 }
 

@@ -62,13 +62,13 @@ int ** generateCostMatrix( bool mapE[numRows][numCols] ){
 
 void dij(int n,int v,int** cost)
  {
-  int i,u,count,w,flag[4],min;
+  int i,u,count,w,flag[16],min;
   for(i=0;i<n;i++)
    flag[i]=0,distanceToNode[i]=cost[v][i];
   count=1;
   while(count<n)
   {
-   min=99;
+   min=infinity;
    for(w=0;w<n;w++)
     if(distanceToNode[w]<min && !flag[w])
      min=distanceToNode[w],u=w;
@@ -80,8 +80,7 @@ void dij(int n,int v,int** cost)
   }
 
   for (int i = 0; i < n; i++) {
-	  if(distanceToNode[i] != infinity)
-		printf("cost=%d\n",distanceToNode[i]);
+		printf("from %d to %d: cost=%d\n",v,i,distanceToNode[i]);
   }
   //seg fault here, result of stack overflow based on information available
 }
