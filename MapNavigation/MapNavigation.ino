@@ -1,42 +1,24 @@
-/*******************************************
- Sparki Line-following example
- 
- Threshold is the value that helps you 
- determine what's black and white. Sparki's 
- infrared reflectance sensors indicate white 
- as close to 900, and black as around 200.
- This example uses a threshold of 700 for 
- the example, but if you have a narrow line, 
- or perhaps a lighter black, you may need to 
- adjust.
-********************************************/
-
 #define infinity 999
 #include <Sparki.h> // include the sparki library
+
 unsigned long startOfLoop; // Time since start of program, calculated at each loop beginning
 const float pi = 3.1415926;
 
 const float speedMotor = 0.3 / (10773.0 / 1000.0); // m / s
 const float lengthAxle = 0.084; // meters
 
-float posX = 0.0;
-float posY = 0.0;
-float theta = 0; // Initially facing right ("East" or 0 radians)
+// For odometry
+//float posX = 0.0;
+//float posY = 0.0;
 
 int threshold = 700;
-
 int lineLeft;
 int lineCenter;
 int lineRight;
 
-// Map of obstacle course
-const int numRows = 4;
-const int numCols = 4;
+// Pixels on Sparki display
 int displayRows = 64;
 int displayCols = 128;
-
-// Distance to each node
-int distance[numRows * numCols];
 
 // Dimensions of line-following map
 float mapWidth = 0.595; // meters
@@ -46,28 +28,34 @@ float mapHeight = 0.415; // meters
 float yStartDifference = 0.055;
 float xStartDifference = 0.143;
 
+// Map of obstacle course
+const int numRows = 4;
+const int numCols = 4;
 bool envMap[numRows][numCols] = {
   {1, 1, 1, 0},
   {0, 0, 1, 0},
   {1, 1, 1, 1},
   {0, 1, 0, 1},
 };
+float theta = 0; // Initially facing right ("East" or 0 radians)
+
+// Distance to each node
+int distanceToNode[numRows * numCols];
 
 byte startPos[2] = {0, 0};
 byte currentPos[2] = {startPos[0], startPos[1]};
 byte goalPos[2] = {3, 1};
 
 void setup() {
-  int ** costMatrix = generateCostMatrix(envMap);
-  
-  dij(numRows * numCols, posToNode(goalPos[0], goalPos[1]), costMatrix);
-  
-  sparki.clearLCD(); // wipe the screen
-  //displayMap(); 
+  for (int node = 0; node < numCols * numRows; node++) {
+    distanceToNode[node] = infinity;
+  }
+  dij(numRows * numCols, posToNode(goalPos[0], goalPos[1]), distanceToNode);
+  displayMap(); 
 }
 
 void loop() {
-  if (currentPos[0] != goalPos[0] && currentPos[1] != goalPos[1]){
+  if (currentPos[0] != goalPos[0] || currentPos[1] != goalPos[1]){
     int currentNode = posToNode(currentPos[0], currentPos[1]);
     int moveToNode;
     
@@ -77,27 +65,27 @@ void loop() {
       {infinity, 99},
       {infinity, 99},
       {infinity, 99},
-      {infinity, 99}
+      {infinity, 99},
     };
 
     // Check node above
     if (currentPos[0] != 0) {
-      possibleNodes[0][0] = distance[currentNode - numCols];
+      possibleNodes[0][0] = distanceToNode[currentNode - numCols];
       possibleNodes[0][1] = currentNode - numCols;
     }
     // Check node to right
     if (currentPos[1] != numCols - 1) {
-      possibleNodes[1][0] = distance[currentNode + 1];
+      possibleNodes[1][0] = distanceToNode[currentNode + 1];
       possibleNodes[1][1] = currentNode + 1;
     }
     // Check node below
     if (currentPos[0] != numRows - 1) {
-      possibleNodes[2][0] = distance[currentNode + numRows];
+      possibleNodes[2][0] = distanceToNode[currentNode + numRows];
       possibleNodes[2][1] = currentNode + numRows;
     }
     // Check node to left
     if (currentPos[1] != 0) {
-      possibleNodes[3][0] = distance[currentNode - 1];
+      possibleNodes[3][0] = distanceToNode[currentNode - 1];
       possibleNodes[3][1] = currentNode - 1;
     }
 
@@ -111,10 +99,9 @@ void loop() {
         break;
       }
     }
-
-    // Check if we should move up
+    
     if (currentNode < numCols && moveToNode == currentNode - numRows) {
-      // Move Sparki up
+      // We should move up
       if (theta == 0) {
         sparki.moveLeft(90);
       } else if (theta == 180) {
@@ -123,10 +110,10 @@ void loop() {
         sparki.moveRight(180);
       }
       theta = 90;
-      sparki.moveForward(mapHeight / numCols);
+      sparki.moveForward(mapHeight / numCols * 100.0);
+      currentPos[0] -= 1;
     } else if (currentNode % 4 != numCols - 1 && moveToNode == currentNode + 1) {
-      // Check if we should move right
-      // Move Sparki up
+      // We should move right
       if (theta == 90) {
         sparki.moveRight(90);
       } else if (theta == 180) {
@@ -135,10 +122,10 @@ void loop() {
         sparki.moveLeft(90);
       }
       theta = 0;
-      sparki.moveForward(mapWidth / numRows);
+      sparki.moveForward(mapWidth / numRows * 100.0);
+      currentPos[1] += 1;
     } else if (currentNode > numRows * (numCols - 1) - 1 < numCols && moveToNode == currentNode + numRows) {
-      // Check if we should move down
-      // Move Sparki up
+      // We should move down
       if (theta == 0) {
         sparki.moveRight(90);
       } else if (theta == 180) {
@@ -147,10 +134,10 @@ void loop() {
         sparki.moveRight(180);
       }
       theta = 270;
-      sparki.moveForward(mapHeight / numCols);
-    } else if (currentNode % numRows == 0 && moveToNode == currentNode - 1) {
-      // Check if we should move left
-      // Move Sparki up
+      sparki.moveForward(mapHeight / numCols * 100.0);
+      currentPos[0] += 1;
+    } else if (currentNode % numRows != 0 && moveToNode == currentNode - 1) {
+      // We should move left
       if (theta == 0) {
         sparki.moveLeft(180);
       } else if (theta == 90) {
@@ -159,24 +146,23 @@ void loop() {
         sparki.moveRight(90);
       }
       theta = 180;
-      sparki.moveForward(mapWidth / numRows);
+      sparki.moveForward(mapWidth / numRows * 100.0);
+      currentPos[1] -= 1;
     }
-    
-  }
-  
-    /*dij(10, 0, cost, distance, previousNode);
-    for(int i = 0; i < 10; i++)
-  {
+  } else {
+    // We're there!
     sparki.clearLCD();
-    sparki.print("Distance ");
-    sparki.print(i);
-    sparki.print(" = ");
-    sparki.println(distance[i]);
+    sparki.drawCircle(displayCols / 2 - 20, 25, 10); //eye 1
+    sparki.drawCircle(displayCols / 2 + 20, 25, 10); //eye 2 
+    sparki.drawCircleFilled(displayCols / 2 - 20, 25, 2); //pupil 1
+    sparki.drawCircleFilled(displayCols / 2 + 20, 25, 2); //pupil 2
+    sparki.drawLine(displayCols / 2 - 30, 45, displayCols / 2 - 15, 55);
+    sparki.drawLine(displayCols / 2 - 15, 55, displayCols / 2 + 15, 55);
+    sparki.drawLine(displayCols / 2 + 15, 55, displayCols / 2 + 30, 45);
     sparki.updateLCD();
-    delay(1000);
   }
-*/
-  
+
+// Odometry code not used for navigating map here
 //  startOfLoop = millis();
 //  
 //  lineLeft   = sparki.lineLeft();   // measure the left IR sensor
@@ -228,6 +214,14 @@ void loop() {
 //  while (millis() < startOfLoop + 100){
 //    // Wait and do nothing, this is used to ensure Sparki was moving for 100 msec
 //  }
+  
+//  delay(1000);
+//  sparki.moveForward();
+//  delay(200);
+//  sparki.moveBackward();
+//  delay(200);
+//  sparki.moveStop();
+    
 }
 
 void displayMap() {
@@ -244,74 +238,87 @@ void displayMap() {
   sparki.updateLCD();
 }
 
-int ** generateCostMatrix( bool mapE[numRows][numCols] ){
-  int** costMatrix = 0;
-  costMatrix = new int*[numRows * numCols];
-
-  for(int i = 0; i < numRows * numCols; i++)
-  {
-    costMatrix[i] = new int[numRows * numCols];
-    for(int j = 0; j < numRows * numCols; j++)
-    {
-      costMatrix[i][j] = infinity;
-    }
+int cost(int start, int goal){
+  if (start == goal) {
+    return 0;
   }
-  for(int i = 0; i < numRows; i++)
-  {
-    for(int j = 0; j < numCols; j++)
-    {
-      if(mapE[i][j] == 1)
-      {
-        if(mapE[i][j+1] == 1 && j != numCols - 1)
-        {
-          // The position has an available neighbor spot to right
-          costMatrix[j + numRows * i][j + numRows * i + 1] = 1;
-          costMatrix[j + numRows * i + 1][j + numRows * i] = 1;
-        }
-        if(mapE[i+1][j] == 1 && i != numRows - 1)
-        {
-          // The position has an available neighbor spot below
-          costMatrix[j + numRows * i][j + numRows * i + numRows] = 1;
-          costMatrix[j + numRows * i + numRows][j + numRows * i] = 1;
-        }
-      }
-    }
-  }
-  return costMatrix;
+	int dist = 0;
+	int x1 = start / numRows;
+	int x2 = goal / numRows;
+	int y1 = start % numCols;
+	int y2 = goal % numCols;
+	
+	if (envMap[x1][y1] == 0 || envMap[x2][y2] == 0) {
+		return infinity;
+	}
+	
+	dist = abs(x2-x1)+abs(y2-y1);
+	
+	if (dist > 1) {
+		return infinity;
+	} else {
+	  return 1;
+	}
 }
 
-void dij(int n,int v,int** cost)
+// Originally used to generate the adjacency list
+//int ** generateCostMatrix( bool mapE[numRows][numCols] ){
+//  int** costMatrix = 0;
+//  costMatrix = new int*[numRows * numCols];
+//
+//  for(int i = 0; i < numRows * numCols; i++)
+//  {
+//    costMatrix[i] = new int[numRows * numCols];
+//    for(int j = 0; j < numRows * numCols; j++)
+//    {
+//      costMatrix[i][j] = infinity;
+//    }
+//  }
+//  for(int i = 0; i < numRows; i++)
+//  {
+//    for(int j = 0; j < numCols; j++)
+//    {
+//      if(mapE[i][j] == 1)
+//      {
+//        if(mapE[i][j+1] == 1 && j != numCols - 1)
+//        {
+//          // The position has an available neighbor spot to right
+//          costMatrix[j + numRows * i][j + numRows * i + 1] = 1;
+//          costMatrix[j + numRows * i + 1][j + numRows * i] = 1;
+//        }
+//        if(mapE[i+1][j] == 1 && i != numRows - 1)
+//        {
+//          // The position has an available neighbor spot below
+//          costMatrix[j + numRows * i][j + numRows * i + numRows] = 1;
+//          costMatrix[j + numRows * i + numRows][j + numRows * i] = 1;
+//        }
+//      }
+//    }
+//  }
+//  return costMatrix;
+//}
+
+void dij(int n,int v,int distance[])//int** cost)
 {
-  int i,u,count,w,flag[4],min;
+  int i,u,count,w,flag[numCols * numRows],min;
   for(i=0;i<n;i++)
-    flag[i]=0,distance[i]=cost[v][i];
+    flag[i]=0,distance[i]=cost(v,i);
   count=1;
   while(count<n)
   {
-    min=99;
+    min=infinity;
     for(w=0;w<n;w++)
       if(distance[w]<min && !flag[w])
       min=distance[w],u=w;
     flag[u]=1;
     count++;
     for(w=0;w<n;w++)
-      if((distance[u]+cost[u][w]<distance[w]) && !flag[w])
-        distance[w]=distance[u]+cost[u][w];
+      if((distance[u]+cost(u,w)<distance[w]) && !flag[w])
+        distance[w]=distance[u]+cost(u,w);
   }
-
-  // Temporarily, this is only place we have access to distance
-  // Could use global variable or return from function
 }
 
-void moveToNode(int node) {
-  // Move Sparki to center of node
-}
-
+// Convert x, y position to node
 byte posToNode(byte posX, byte posY) {
-  return posX + numRows * posY;
-}
-
-void nodeToPos(byte node, byte* posX, byte* posY) {
-  *posX = node % numRows;
-  *posY = node / numCols;
+  return posX * numRows + posY;
 }
