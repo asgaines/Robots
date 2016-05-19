@@ -20,9 +20,9 @@ bool startPosition[2] = {0, 0};
 bool currentPosition[2] = {startPosition[0], startPosition[1]};
 bool goalPosition[2] = {3, 1};
 
-void setup() {
+/*void setup() {
   //displayMap(); 
-}
+}*/
 
 int ** generateCostMatrix( bool mapE[numRows][numCols] ){
   int** costMatrix = 0;
@@ -78,16 +78,18 @@ void dij(int n,int v,int** cost)
     if((distanceToNode[u]+cost[u][w]<distanceToNode[w]) && !flag[w])
      distanceToNode[w]=distanceToNode[u]+cost[u][w];
   }
-  for (int d = 0; d < numRows * numCols; d++) {
-    if (d != v) {
-      printf("%d->%d,cost=%d\n",v,d,distanceToNode[d]);
-    }
+
+  for (int i = 0; i < n; i++) {
+	  if(distanceToNode[i] != infinity)
+		printf("cost=%d\n",distanceToNode[i]);
   }
+  //seg fault here, result of stack overflow based on information available
 }
 
 int main() {
     int ** costMatrix = generateCostMatrix(envMap);
 
     dij(numRows * numCols, 13, costMatrix);
+    return 0;
 }
 
