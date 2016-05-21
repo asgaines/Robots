@@ -10,7 +10,9 @@ int distances[numReadings];
 int numAcceptedValues;
 int acceptedValues[numReadings][2]; // Store {distance, angle}
 
-int targetDistance = 10;
+int targetDistance = 30;
+float mean;
+float variance;
 
 void setup() {
 } 
@@ -41,12 +43,36 @@ void loop() {
     }
     Serial.println();
 
+    sparki.clearLCD();
+
+
     for (int reading = 0; reading < numAcceptedValues; reading++) {
       Serial.print("Distance: ");
-      Serial.print(acceptedValues[reading][0]);
+      sparki.print(acceptedValues[reading][0]);
+      sparki.print(" ");
       Serial.print(", angle: ");
       Serial.println(acceptedValues[reading][1]);
+      mean = mean + acceptedValues[reading][0];
     }
+    sparki.println();
+    mean = mean / numAcceptedValues;
+    sparki.print("Mean = ");
+    sparki.println(mean);
+
+    for(int reading = 0; reading < numAcceptedValues; reading++) {
+      variance = variance + (acceptedValues[reading][0] - mean) * (acceptedValues[reading][0] - mean); 
+    }
+    variance = variance / numAcceptedValues;
+
+    sparki.print("Variance = ");
+    sparki.println(variance);
+    sparki.updateLCD();
+
+    //10cm: variance = approximately 0.29
+    //20cm: variance = approximately 0.62 - 0.80
+    //30cm: variance = approximately 1.16
+    //40cm: variance = approximately 1.58
+    
     // Prepare for next sweep of readings
     numAcceptedValues = 0;    
   }  
