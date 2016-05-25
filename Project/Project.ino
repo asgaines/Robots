@@ -183,7 +183,14 @@ void loop() {
 //    sparki.updateLCD();      
    }
     foundPrincess = 1;
-    sparki.moveLeft(180);
+    //Reset the robot's rotation to zero
+    if( theta == 180) {
+    sparki.moveLeft(180);      
+    } else if( theta == 90) {
+      sparki.moveLeft(90);
+    } else if( theta == 270) {
+      sparki.moveRight(90);
+    }
   }
   if(foundPrincess) {
     if(!returned) {
