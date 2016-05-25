@@ -63,7 +63,8 @@ int moveBackSize = 0;
 int moveBack[16]; //1 for mvoe Up, 2 for move Right, 3 for move Down, and 4 for move Left
 
 void loop() {
-  if (currentPos[0] != princessRow || currentPos[1] != princessCol){
+  if(!foundPrincess) {
+        if (currentPos[0] != princessRow || currentPos[1] != princessCol){
     int currentNode = posToNode(currentPos[0], currentPos[1]);
     int moveToNode;
     
@@ -244,6 +245,8 @@ void loop() {
       returned = 1;
     }
 }
+
+  }
   
 
 // Odometry code not used for navigating map here
