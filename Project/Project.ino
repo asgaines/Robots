@@ -48,9 +48,6 @@ byte currentPos[2] = {startPos[0], startPos[1]};
 byte goalPos[2] = {3, 1};
 
 void setup() {
- sparki.gripperOpen();
- delay(3000);
- sparki.gripperStop();    
  findPrincess();
   for (int node = 0; node < numCols * numRows; node++) {
     distanceToNode[node] = infinity;
@@ -187,15 +184,16 @@ void loop() {
     if( theta == 180) {
     sparki.moveLeft(180);      
     } else if( theta == 90) {
-      sparki.moveLeft(90);
-    } else if( theta == 270) {
       sparki.moveRight(90);
+    } else if( theta == 270) {
+      sparki.moveLeft(90);
     }
+    theta = 0;
   }
   if(foundPrincess) {
     if(!returned) {
           for(int moveNumber = moveBackSize - 1; moveNumber >= 0; moveNumber--) {
-       if (moveBack[moveNumber] == 1){
+       if (moveBack[moveNumber] == 3){
           // We should move up
           if (theta == 0) {
             sparki.moveLeft(90);
@@ -207,7 +205,7 @@ void loop() {
           theta = 90;
           sparki.moveForward(mapHeight / numCols);
           currentPos[0] -= 1;
-        } else if (moveBack[moveNumber] == 2) {
+        } else if (moveBack[moveNumber] == 4) {
           // We should move right
           if (theta == 90) {
             sparki.moveRight(90);
@@ -219,7 +217,7 @@ void loop() {
           theta = 0;
           sparki.moveForward(mapWidth / numRows);
           currentPos[1] += 1;
-        } else if (moveBack[moveNumber] == 3) {
+        } else if (moveBack[moveNumber] == 1) {
           // We should move down
           if (theta == 0) {
             sparki.moveRight(90);
@@ -231,7 +229,7 @@ void loop() {
           theta = 270;
           sparki.moveForward(mapHeight / numCols);
           currentPos[0] += 1;
-        } else if (moveBack[moveNumber] == 4) {
+        } else if (moveBack[moveNumber] == 2) {
           // We should move left
           if (theta == 0) {
             sparki.moveLeft(180);
@@ -250,6 +248,9 @@ void loop() {
       sparki.updateLCD();
       sparki.moveStop();
       returned = 1;
+      sparki.gripperOpen();
+      delay(3000);
+      sparki.gripperStop();    
     }
 }
 
