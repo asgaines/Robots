@@ -14,7 +14,11 @@ const float lengthAxle = 0.084; // meters
 int displayRows = 64;
 int displayCols = 128;
 
+// The princess Position
+int princessCol= 0;
+int princessRow = 0;
 int princessNode = infinity;
+bool foundPrincess = 0;
 
 // Dimensions of line-following map
 float mapWidth = 70.612; // cm
@@ -43,16 +47,20 @@ byte currentPos[2] = {startPos[0], startPos[1]};
 byte goalPos[2] = {3, 1};
 
 void setup() {
+ sparki.gripperOpen();
+ delay(3000);
+ sparki.gripperStop();
+    
   findPrincess();
   for (int node = 0; node < numCols * numRows; node++) {
     distanceToNode[node] = infinity;
   }
-  dij(numRows * numCols, posToNode(goalPos[0], goalPos[1]), distanceToNode);
-  displayMap(); 
+  dij(numRows * numCols, princessNode, distanceToNode);
+ // displayMap(); 
 }
 
 void loop() {
-  if (currentPos[0] != goalPos[0] || currentPos[1] != goalPos[1]){
+  if (currentPos[0] != princessRow || currentPos[1] != princessCol){
     int currentNode = posToNode(currentPos[0], currentPos[1]);
     int moveToNode;
     
@@ -148,6 +156,10 @@ void loop() {
     }
   } else {
     // We're there!
+    if(!foundPrincess) {
+   sparki.gripperClose(); // close the robot's gripper
+   delay(3000);           // for 1 second (1000 milliseconds)
+   sparki.gripperStop();
     sparki.clearLCD();
     sparki.drawCircle(displayCols / 2 - 20, 25, 10); //eye 1
     sparki.drawCircle(displayCols / 2 + 20, 25, 10); //eye 2 
@@ -156,7 +168,12 @@ void loop() {
     sparki.drawLine(displayCols / 2 - 30, 45, displayCols / 2 - 15, 55);
     sparki.drawLine(displayCols / 2 - 15, 55, displayCols / 2 + 15, 55);
     sparki.drawLine(displayCols / 2 + 15, 55, displayCols / 2 + 30, 45);
-    sparki.updateLCD();
+    sparki.updateLCD();      
+    }
+    foundPrincess = 1;
+  }
+  if(foundPrincess) {
+    
   }
 
 // Odometry code not used for navigating map here
@@ -239,23 +256,23 @@ int cost(int start, int goal){
   if (start == goal) {
     return 0;
   }
-	int dist = 0;
-	int x1 = start / numRows;
-	int x2 = goal / numRows;
-	int y1 = start % numCols;
-	int y2 = goal % numCols;
-	
-	if (envMap[x1][y1] == 0 || envMap[x2][y2] == 0) {
-		return infinity;
-	}
-	
-	dist = abs(x2-x1)+abs(y2-y1);
-	
-	if (dist > 1) {
-		return infinity;
-	} else {
-	  return 1;
-	}
+  int dist = 0;
+  int x1 = start / numRows;
+  int x2 = goal / numRows;
+  int y1 = start % numCols;
+  int y2 = goal % numCols;
+  
+  if (envMap[x1][y1] == 0 || envMap[x2][y2] == 0) {
+    return infinity;
+  }
+  
+  dist = abs(x2-x1)+abs(y2-y1);
+  
+  if (dist > 1) {
+    return infinity;
+  } else {
+    return 1;
+  }
 }
 
 void dij(int n,int v,int distance[])
@@ -328,24 +345,45 @@ void findPrincess() {
   Serial.print(" angle: ");
   Serial.println(aveAngle);
 
+//  int variance = 0;
+//   for(int reading = 0; reading < numAcceptedReadings; reading++) {
+//      variance = variance + (acceptedReadings[reading][0] - aveDist) * (acceptedReadings[reading][0] - aveDist); 
+//    }
+//    variance = variance / numAcceptedReadings;
+
   // Position of princess
   float princessX = cos((45 + aveAngle) / 360.0 * 2 * pi) * aveDist;
   float princessY = sin((45 + aveAngle) / 360.0 * 2 * pi) * aveDist;
   // Account for Sparki being in middle of node when measuring
-  princessX += mapWidth / 4.0 / 2.0;
-  princessY += mapHeight / 4.0 / 2.0;
+  princessX += (mapWidth / 4.0 / 2.0);// - variance;
+  princessY += (mapHeight / 4.0 / 2.0);// - variance;
 
   Serial.print("princessX: ");
   Serial.print(princessX);
   Serial.print(" princessY: ");
   Serial.println(princessY);
 
-  int princessCol = princessX / (mapWidth / numCols);
-  int princessRow = princessY / (mapHeight / numRows);
+  princessCol = princessX / (mapWidth / numCols);
+  princessRow = princessY / (mapHeight / numRows);
   
   Serial.print("princess row: ");
   Serial.print(princessRow);
   Serial.print(" princess column: ");
   Serial.println(princessCol);
-}
 
+  princessNode = posToNode(princessRow, princessCol);
+
+  sparki.moveLeft(45);
+  sparki.clearLCD();
+  sparki.print(princessX);
+  sparki.print(" , ");
+  sparki.println(princessY);
+  sparki.print("princess row: ");
+  sparki.println(princessRow);
+  sparki.print("princess column: ");
+  sparki.println(princessCol);
+  sparki.print("Node: ");
+  sparki.println(princessNode);
+  sparki.updateLCD();
+  
+}
