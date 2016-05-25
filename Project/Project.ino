@@ -19,6 +19,7 @@ int princessCol= 0;
 int princessRow = 0;
 int princessNode = infinity;
 bool foundPrincess = 0;
+bool returned = 0;
 
 // Dimensions of line-following map
 float mapWidth = 70.612; // cm
@@ -49,15 +50,17 @@ byte goalPos[2] = {3, 1};
 void setup() {
  sparki.gripperOpen();
  delay(3000);
- sparki.gripperStop();
-    
-  findPrincess();
+ sparki.gripperStop();    
+ findPrincess();
   for (int node = 0; node < numCols * numRows; node++) {
     distanceToNode[node] = infinity;
   }
   dij(numRows * numCols, princessNode, distanceToNode);
  // displayMap(); 
 }
+
+int moveBackSize = 0;
+int moveBack[16]; //1 for mvoe Up, 2 for move Right, 3 for move Down, and 4 for move Left
 
 void loop() {
   if (currentPos[0] != princessRow || currentPos[1] != princessCol){
@@ -117,6 +120,8 @@ void loop() {
       theta = 90;
       sparki.moveForward(mapHeight / numCols);
       currentPos[0] -= 1;
+      moveBack[moveBackSize] = 1;
+      moveBackSize++;
     } else if (currentNode % 4 != numCols - 1 && moveToNode == currentNode + 1) {
       // We should move right
       if (theta == 90) {
@@ -129,6 +134,8 @@ void loop() {
       theta = 0;
       sparki.moveForward(mapWidth / numRows);
       currentPos[1] += 1;
+      moveBack[moveBackSize] = 2;
+      moveBackSize++;
     } else if (currentNode > numRows * (numCols - 1) - 1 < numCols && moveToNode == currentNode + numRows) {
       // We should move down
       if (theta == 0) {
@@ -141,6 +148,8 @@ void loop() {
       theta = 270;
       sparki.moveForward(mapHeight / numCols);
       currentPos[0] += 1;
+      moveBack[moveBackSize] = 3;
+      moveBackSize++;
     } else if (currentNode % numRows != 0 && moveToNode == currentNode - 1) {
       // We should move left
       if (theta == 0) {
@@ -153,6 +162,8 @@ void loop() {
       theta = 180;
       sparki.moveForward(mapWidth / numRows);
       currentPos[1] -= 1;
+      moveBack[moveBackSize] = 4;
+      moveBackSize++;
     }
   } else {
     // We're there!
@@ -160,21 +171,80 @@ void loop() {
    sparki.gripperClose(); // close the robot's gripper
    delay(3000);           // for 1 second (1000 milliseconds)
    sparki.gripperStop();
-    sparki.clearLCD();
-    sparki.drawCircle(displayCols / 2 - 20, 25, 10); //eye 1
-    sparki.drawCircle(displayCols / 2 + 20, 25, 10); //eye 2 
-    sparki.drawCircleFilled(displayCols / 2 - 20, 25, 2); //pupil 1
-    sparki.drawCircleFilled(displayCols / 2 + 20, 25, 2); //pupil 2
-    sparki.drawLine(displayCols / 2 - 30, 45, displayCols / 2 - 15, 55);
-    sparki.drawLine(displayCols / 2 - 15, 55, displayCols / 2 + 15, 55);
-    sparki.drawLine(displayCols / 2 + 15, 55, displayCols / 2 + 30, 45);
-    sparki.updateLCD();      
-    }
+//    sparki.clearLCD();
+//    sparki.drawCircle(displayCols / 2 - 20, 25, 10); //eye 1
+//    sparki.drawCircle(displayCols / 2 + 20, 25, 10); //eye 2 
+//    sparki.drawCircleFilled(displayCols / 2 - 20, 25, 2); //pupil 1
+//    sparki.drawCircleFilled(displayCols / 2 + 20, 25, 2); //pupil 2
+//    sparki.drawLine(displayCols / 2 - 30, 45, displayCols / 2 - 15, 55);
+//    sparki.drawLine(displayCols / 2 - 15, 55, displayCols / 2 + 15, 55);
+//    sparki.drawLine(displayCols / 2 + 15, 55, displayCols / 2 + 30, 45);
+//    sparki.updateLCD();      
+   }
     foundPrincess = 1;
+    sparki.moveLeft(180);
   }
   if(foundPrincess) {
-    
-  }
+    if(!returned) {
+          for(int moveNumber = moveBackSize - 1; moveNumber >= 0; moveNumber--) {
+       if (moveBack[moveNumber] == 1){
+          // We should move up
+          if (theta == 0) {
+            sparki.moveLeft(90);
+          } else if (theta == 180) {
+            sparki.moveRight(90);
+          } else if (theta == 270) {
+            sparki.moveRight(180);
+          }
+          theta = 90;
+          sparki.moveForward(mapHeight / numCols);
+          currentPos[0] -= 1;
+        } else if (moveBack[moveNumber] == 2) {
+          // We should move right
+          if (theta == 90) {
+            sparki.moveRight(90);
+          } else if (theta == 180) {
+            sparki.moveRight(180);
+          } else if (theta == 270) {
+            sparki.moveLeft(90);
+          }
+          theta = 0;
+          sparki.moveForward(mapWidth / numRows);
+          currentPos[1] += 1;
+        } else if (moveBack[moveNumber] == 3) {
+          // We should move down
+          if (theta == 0) {
+            sparki.moveRight(90);
+          } else if (theta == 180) {
+            sparki.moveLeft(90);
+          } else if (theta == 90) {
+            sparki.moveRight(180);
+          }
+          theta = 270;
+          sparki.moveForward(mapHeight / numCols);
+          currentPos[0] += 1;
+        } else if (moveBack[moveNumber] == 4) {
+          // We should move left
+          if (theta == 0) {
+            sparki.moveLeft(180);
+          } else if (theta == 90) {
+            sparki.moveLeft(90);
+          } else if (theta == 270) {
+            sparki.moveRight(90);
+          }
+          theta = 180;
+          sparki.moveForward(mapWidth / numRows);
+          currentPos[1] -= 1;
+        }
+      }
+      sparki.clearLCD();
+      sparki.print("Done");
+      sparki.updateLCD();
+      sparki.moveStop();
+      returned = 1;
+    }
+}
+  
 
 // Odometry code not used for navigating map here
 //  startOfLoop = millis();
