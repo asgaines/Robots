@@ -35,8 +35,8 @@ const int numCols = 4;
 bool envMap[numRows][numCols] = {
   {1, 1, 1, 1},
   {0, 0, 0, 1},
+  {0, 1, 0, 1},
   {0, 1, 1, 1},
-  {0, 0, 1, 1},
 };
 float theta = 0; // Initially facing right ("East" or 0 radians)
 
