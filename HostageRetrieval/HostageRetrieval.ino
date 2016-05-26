@@ -106,7 +106,7 @@ void loop() {
       }
     }
     
-    if (currentNode < numCols && moveToNode == currentNode - numRows) {
+    if (currentNode > numCols && moveToNode == currentNode - numRows) {
       // We should move up
       if (theta == 0) {
         sparki.moveLeft(90);
