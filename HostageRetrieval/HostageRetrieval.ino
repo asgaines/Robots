@@ -33,10 +33,10 @@ float xStartDifference = 0.143;
 const int numRows = 4;
 const int numCols = 4;
 bool envMap[numRows][numCols] = {
-  {1, 1, 1, 0},
-  {0, 0, 1, 0},
   {1, 1, 1, 1},
-  {0, 1, 0, 1},
+  {0, 0, 0, 1},
+  {0, 1, 1, 1},
+  {0, 0, 1, 1},
 };
 float theta = 0; // Initially facing right ("East" or 0 radians)
 
@@ -243,9 +243,7 @@ void loop() {
           currentPos[1] -= 1;
         }
       }
-      sparki.clearLCD();
-      sparki.print("Done");
-      sparki.updateLCD();
+      Serial.print("Done");
       sparki.moveStop();
       returned = 1;
       sparki.gripperOpen();
@@ -394,6 +392,8 @@ void findPrincess() {
   for (int angle = servoStart; angle < servoEnd; angle++) {
     sparki.servo(angle);
     readings[angle + abs(servoStart)] = sparki.ping();
+    Serial.print(readings[angle + abs(servoStart)]);
+    Serial.print(", ");
   }
 
   // Find the princess in the data. She won't be more than 70 cm away on our map
@@ -455,16 +455,14 @@ void findPrincess() {
   princessNode = posToNode(princessRow, princessCol);
 
   sparki.moveLeft(45);
-  sparki.clearLCD();
-  sparki.print(princessX);
-  sparki.print(" , ");
-  sparki.println(princessY);
-  sparki.print("princess row: ");
-  sparki.println(princessRow);
-  sparki.print("princess column: ");
-  sparki.println(princessCol);
-  sparki.print("Node: ");
-  sparki.println(princessNode);
-  sparki.updateLCD();
+  Serial.print(princessX);
+  Serial.print(" , ");
+  Serial.println(princessY);
+  Serial.print("princess row: ");
+  Serial.println(princessRow);
+  Serial.print("princess column: ");
+  Serial.println(princessCol);
+  Serial.print("Node: ");
+  Serial.println(princessNode);
   
 }
